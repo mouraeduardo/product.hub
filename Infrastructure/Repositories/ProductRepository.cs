@@ -1,5 +1,7 @@
-﻿namespace Infrastructure.Repositories;
+﻿using Domain.Repositories;
 
-public class ProductRepository
+namespace Infrastructure.Repositories;
+
+public class ProductRepository : IProductRepository
 {
 }

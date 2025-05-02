@@ -1,5 +1,5 @@
 ﻿namespace Domain.Repositories;
 
-public class ICustomerRepository
+public interface ICustomerRepository
 {
 }

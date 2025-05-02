@@ -1,6 +1,8 @@
-﻿namespace Application.Business;
+﻿using Domain.Business;
 
-public class ProductBUS
+namespace Application.Business;
+
+public class ProductBUS : IProductBUS
 {
 
 }

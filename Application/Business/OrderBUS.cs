@@ -1,5 +1,7 @@
-﻿namespace Application.Business;
+﻿using Domain.Business;
 
-public class OrderBUS
+namespace Application.Business;
+
+public class OrderBUS : IOrderBUS
 {
 }

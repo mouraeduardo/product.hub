@@ -1,5 +1,7 @@
-﻿namespace Infrastructure.Repositories;
+﻿using Domain.Repositories;
 
-public class OrderRepository
+namespace Infrastructure.Repositories;
+
+public class OrderRepository : IOrderRepository
 {
 }
