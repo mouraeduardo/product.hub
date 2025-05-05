@@ -1,5 +1,7 @@
-﻿namespace Domain.Repositories;
+﻿using Domain.Models;
 
-public interface IProductRepository
+namespace Domain.Repositories;
+
+public interface IProductRepository : IBaseRepository<Product>
 {
 }
