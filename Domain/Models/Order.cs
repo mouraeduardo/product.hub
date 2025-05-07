@@ -6,5 +6,5 @@ public class Order : BaseModel
     public double Total { get; set; }
     public int Status { get; set; }
     public string Observations{ get; set; }
-    IEnumerable<Product> ProductList { get; set; }
+    public ICollection<OrderProduct> OrderProductList { get; set; }
 }
