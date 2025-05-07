@@ -18,11 +18,13 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
 
     public async Task<T> GetByIdAsync(long id) => await _Dbset.FindAsync(id);
     public void Create(T entity) => _Dbset.Add(entity);
-    public void Delete(T entity) => _Dbset.Remove(entity);
+    public void Delete(T entity) 
+    {
+        _Dbset.Update(entity);
+    }
     public void Update(T entity) => _Dbset.Update(entity);
     public void SaveChange() 
     {
         _context.SaveChanges();
-        _context.Dispose();
     }
 }
