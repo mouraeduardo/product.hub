@@ -1,10 +1,11 @@
-﻿using Domain.Repositories;
+﻿using Domain.Models;
+using Domain.Repositories;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
-public class BaseRepository<T> : IBaseRepository<T> where T : class 
+public class BaseRepository<T> : IBaseRepository<T> where T : BaseModel 
 {
     protected readonly AppDbContext _context;
     protected readonly DbSet<T> _Dbset; 
@@ -20,6 +21,7 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
     public void Create(T entity) => _Dbset.Add(entity);
     public void Delete(T entity) 
     {
+        entity.DeletionDate = DateTime.UtcNow;
         _Dbset.Update(entity);
     }
     public void Update(T entity) => _Dbset.Update(entity);
