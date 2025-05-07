@@ -27,6 +27,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder
 
 builder.Services.Configure<ConnectionStrings>(builder.Configuration.GetSection("ConnectionStrings"));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<HashSettings>(builder.Configuration.GetSection("HashSettings"));
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 
