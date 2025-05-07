@@ -1,4 +1,5 @@
-﻿using Domain.Business;
+﻿using Application.Messages;
+using Domain.Business;
 using Domain.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,9 +28,9 @@ namespace API.Controllers
 
                 return Ok(result);
             }
-            catch (Exception) {
+            catch (Exception ex) {
 
-                return BadRequest("Deu ruim");
+                return BadRequest(ex.Message);
             }
         }
 
@@ -42,11 +43,11 @@ namespace API.Controllers
 
                 _userBUS.Create(dto); // TODO: criar um model de reponse para retornar erros ou sucess
 
-                return Ok();
+                return Ok(InfoMsg.INF001);
             }
-            catch (Exception) {
-
-                return BadRequest("Deu ruim");
+            catch (Exception ex) 
+            {
+                return BadRequest(ex.Message);
             }
         }
     }

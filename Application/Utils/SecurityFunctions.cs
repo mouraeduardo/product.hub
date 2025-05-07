@@ -12,9 +12,12 @@ namespace Application.Utils;
 public class SecurityFunctions 
 {
     private readonly JwtSettings _jwtSettings;
-    public SecurityFunctions(IOptions<JwtSettings> jwtSettings)
+    private readonly HashSettings _hashSettings;
+
+    public SecurityFunctions(IOptions<JwtSettings> jwtSettings, IOptions<HashSettings> hashSettings)
     {
         _jwtSettings = jwtSettings.Value;
+        _hashSettings = hashSettings.Value;
     }
 
     public string GenerateJwtToken(User user) 
@@ -49,16 +52,18 @@ public class SecurityFunctions
         return salt;
     }
 
-    public string ComputeHash(string password, string salt, string pepper, int iteration) 
+    public string ComputePasswordHash(string password, string salt) 
     {
-        if (iteration <= 0) return password;
-
         using var sha256 = SHA256.Create();
-        var passwordSaltPepper = $"{password}{salt}{pepper}";
-        var byteValue = Encoding.UTF8.GetBytes(passwordSaltPepper);
-        var byteHash = sha256.ComputeHash(byteValue);
-        var hash = Convert.ToBase64String(byteHash);
+        var combined = Encoding.UTF8.GetBytes($"{password}{salt}{_hashSettings.Pepper}");
+        var hash = sha256.ComputeHash(combined);
 
-        return ComputeHash(hash, salt, pepper, iteration - 1);
+        for (int i = 1; i < _hashSettings.Iterations; i++) 
+        {
+            hash = sha256.ComputeHash(hash);
+        }
+
+        return Convert.ToBase64String(hash);
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using Application.Utils;
+﻿using Application.Messages;
+using Application.Utils;
 using Domain.Business;
 using Domain.Communication;
 using Domain.Models;
@@ -35,7 +36,7 @@ public class UserBUS : IUserBUS
                 DeletionDate = null
             };
 
-            user.Password = _securityFunctions.ComputeHash(dto.Password, user.Salt, "teste", 5); // TODO: Ajustar o pepper e o interation
+            user.Password = _securityFunctions.ComputePasswordHash(dto.Password, user.Salt);
 
             _userRepository.Create(user);
             _userRepository.SaveChange();
@@ -46,23 +47,23 @@ public class UserBUS : IUserBUS
         }
     }
 
-    public UserResponse Login(LoginUserDTO dto) 
+    public ApiResponse Login(LoginUserDTO dto) 
     {
         try
         {
-            User user = _userRepository.GetByEmail(dto.email).Result;
+            User user = _userRepository.GetByEmail(dto.Email).Result;
 
-            if (user is null || user.Password != dto.password)
-                throw new Exception("Credenciais invalidas");
+            if (user is null || user.Password != _securityFunctions.ComputePasswordHash(dto.Password, user.Salt))
+                throw new Exception(ErrorMsg.ERROR001);
 
             string token = _securityFunctions.GenerateJwtToken(user);
 
-            return new UserResponse(true, token);
+            return new ApiResponse(true, "Login realizado com sucesso", token);
 
         }
         catch (Exception ex) 
         {
-            return new UserResponse(false, ex.Message);
+            return new ApiResponse(false, ex.Message);
         }
     }
 }
