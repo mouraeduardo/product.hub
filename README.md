@@ -145,5 +145,3 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 ```
 
 ---
-
-Se quiser, posso montar os próximos passos (deploy, dockerização, swagger docs, versionamento de API) nesse padrão também. Quer? 🚀
