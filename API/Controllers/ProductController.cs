@@ -1,115 +1,106 @@
-﻿using Domain.Business;
+﻿using Application.Messages;
+using Domain.Business;
 using Domain.Communication;
+using Domain.Models;
 using Domain.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Controllers {
-    [Authorize]
-    [ApiController]
-    [Route("[controller]")]
-    public class ProductController : Controller
+namespace API.Controllers;
+
+[Authorize]
+[ApiController]
+[Route("[controller]")]
+public class ProductController : Controller
+{
+    private readonly IProductBUS _productBUS;
+
+    public ProductController(IProductBUS productBUS)
     {
-        private readonly IProductBUS _productBUS;
+        _productBUS = productBUS;
+    }
 
-        public ProductController(IProductBUS productBUS)
+    [HttpGet("GetAll")]
+    public IActionResult GetAll()
+    {
+        try 
         {
-            _productBUS = productBUS;
+            IEnumerable<Product> productList = _productBUS.GetAll();
+
+            if (productList.Any())
+                Ok(new ApiResponse(true, InfoMsg.INF006, productList));
+
+            return Ok(new ApiResponse(true, InfoMsg.INF004, productList));
         }
-
-        [HttpGet("GetAll")]
-        public IActionResult GetAll()
+        catch (Exception ex) 
         {
-            try 
-            {
-                ApiResponse apiResponse = _productBUS.GetAll();
-
-                if (!apiResponse.Success)
-                    return BadRequest(apiResponse);
-
-                return Ok(apiResponse);
-            }
-            catch (Exception) 
-            {
-                throw;
-            }
+            return BadRequest(new ApiResponse(false, ex.Message));
         }
+    }
 
-        [HttpGet("GetById")]
-        public IActionResult GetById(long id) 
+    [HttpGet("GetById")]
+    public IActionResult GetById(long id) 
+    {
+        try 
         {
-            try 
-            {
-                ApiResponse apiResponse = _productBUS.GetById(id);
+            Product product = _productBUS.GetById(id);
 
-                if (!apiResponse.Success) 
-                   return BadRequest(apiResponse);
-
-                return Ok(apiResponse);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            return Ok(new ApiResponse(true, InfoMsg.INF002, product));
         }
-
-        [HttpPost]
-        public IActionResult Create([FromBody] CreateProductDTO dto) 
+        catch (Exception ex) 
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState.Values.SelectMany(x =>x.Errors)); // TODO: corrigir formatação do erro
-
-                ApiResponse apiResponse = _productBUS.Create(dto);
-
-                if (!apiResponse.Success)
-                    return BadRequest(apiResponse);
-
-                return Ok(apiResponse);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            return BadRequest(new ApiResponse(false, ex.Message));
         }
+    }
 
-        [HttpPut]
-        public IActionResult Update(long id, [FromBody] CreateProductDTO dto) 
+    [HttpPost]
+    public IActionResult Create([FromBody] CreateProductDTO dto) 
+    {
+        try
         {
-            try 
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.Values.SelectMany(x =>x.Errors));
 
-                ApiResponse apiResponse = _productBUS.Update(id, dto);
+            var newProduct = _productBUS.Create(dto);
 
-                if (!apiResponse.Success)
-                    return BadRequest(apiResponse);
-
-                return Ok(apiResponse);
-            }
-            catch (Exception) 
-            {
-                throw;
-            }
+            return Ok(new ApiResponse(true, InfoMsg.INF001, dto));
         }
-
-        [HttpDelete]
-        public IActionResult Delete(long id) 
+        catch (Exception ex) 
         {
-            try 
-            {
-                ApiResponse apiResponse = _productBUS.Delete(id);
+            return BadRequest(new ApiResponse(false, ex.Message));
+        }
+    }
 
-                if (!apiResponse.Success)
-                    return BadRequest(apiResponse);
+    [HttpPut]
+    public IActionResult Update(long id, [FromBody] UpdateProductDTO dto) 
+    {
+        try 
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-                return Ok(apiResponse);
-            }
-            catch (Exception) 
-            {
-                throw;
-            }
+            var updateProduct = _productBUS.Update(id, dto);
+
+            return Ok(new ApiResponse(true, InfoMsg.INF002, dto));
+        }
+        catch (Exception ex) 
+        {
+            return BadRequest(new ApiResponse(false, ex.Message));
+        }
+    }
+
+    [HttpDelete]
+    public IActionResult Delete(long id) 
+    {
+        try 
+        {
+            if (_productBUS.Delete(id))
+                return BadRequest(ErrorMsg.ERROR010);
+
+            return Ok(new ApiResponse(true, InfoMsg.INF003));
+        }
+        catch (Exception ex) 
+        {
+            return BadRequest(new ApiResponse(false, ex.Message));
         }
     }
 }

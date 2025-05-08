@@ -7,7 +7,7 @@ public interface ICustomerBUS
 {
     public IEnumerable<Customer> GetAll();
     public Customer GetById(long id);
-    public void Create(CreateCustomerDTO dto);
-    public void Update(long id, CreateCustomerDTO dto);
-    public void Delete(long id);
+    public Customer Create(CreateCustomerDTO dto);
+    public Customer Update(long id, CreateCustomerDTO dto);
+    public bool Delete(long id);
 }

@@ -10,18 +10,27 @@ public class OrderBUS : IOrderBUS
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductBUS _productBUS;
+    private readonly ICustomerBUS _customerBUS;
 
-    public OrderBUS(IOrderRepository orderRepository, IProductBUS productBUS)
+
+    public OrderBUS(IOrderRepository orderRepository, IProductBUS productBUS, ICustomerBUS customerBUS)
     {
         _orderRepository = orderRepository;
         _productBUS = productBUS;
+        _customerBUS = customerBUS;
     }
 
     // TODO: Refatorar esse método
-    public void Create(CreateOrderDTO dto) 
+    // TODO: por dentro de uma transaction
+    public Order Create(CreateOrderDTO dto) 
     {
         try 
         {
+            Customer customer = _customerBUS.GetById(dto.CustomerId);
+
+            if (customer == null)
+                throw new Exception(ErrorMsg.ERROR007);
+            
             Order order = new() {
                 CustomerId = dto.CustomerId,
                 Observations = dto.Observations,
@@ -31,15 +40,17 @@ public class OrderBUS : IOrderBUS
                 OrderProductList = new List<OrderProduct>()
             };
 
+            _orderRepository.BeginTransaction();
+
             foreach (var product in dto.ProductList)
             {
-                Product productAux = (Product)_productBUS.GetById(product.ProductId).Data;
+                Product productAux = (Product)_productBUS.GetById(product.ProductId);
 
-                if (productAux == null)
-                    throw new Exception($"Produto {product.ProductId} não encontrado."); // TODO: mandar essa retorno para arquivo de msg
+                if (productAux is null)
+                    throw new Exception(string.Format(ErrorMsg.ERROR006, product.ProductId));
 
                 if (productAux.StockQuantity < product.Quantity)
-                    throw new Exception($"Quantidade de {productAux.Name} é menor do que a quantidade inserida"); // TODO: mandar essa retorno para arquivo de msg
+                    throw new Exception(string.Format(ErrorMsg.ERROR008, productAux.Name));
 
                 OrderProduct orderProduct = new OrderProduct() 
                 {
@@ -57,32 +68,29 @@ public class OrderBUS : IOrderBUS
 
                 order.OrderProductList.Add(orderProduct);
 
-                CreateProductDTO createProductDTO = new CreateProductDTO() 
-                {
-                    Name = productAux.Name,
-                    Description = productAux.Description,
-                    Price = productAux.Price,
-                    StockQuantity = productAux.StockQuantity - product.Quantity
-                };
+                _productBUS.CalculationQuantity(productAux.Id, product.Quantity);
 
-                _productBUS.Update(product.ProductId, createProductDTO);
             }
 
             _orderRepository.Create(order);
             _orderRepository.SaveChange();
 
-        }
-        catch (Exception) {
+            _orderRepository.Commit();
 
+            return order;
+        }
+        catch (Exception) 
+        {
+            _orderRepository.Rollback();
             throw;
         }
     }
 
-    public void Delete(long id) 
+    public bool Delete(long id) 
     {
         try 
         {
-            Order order = _orderRepository.GetByIdAsync(id).Result;
+            Order order = _orderRepository.GetWithOrderProductsByIdAsync(id).Result;
 
             if (order is null)
                 throw new Exception(ErrorMsg.ERROR002);
@@ -96,6 +104,8 @@ public class OrderBUS : IOrderBUS
 
             _orderRepository.Update(order);
             _orderRepository.SaveChange();
+
+            return true;
         }
         catch (Exception) 
     {
@@ -107,7 +117,12 @@ public class OrderBUS : IOrderBUS
     {
         try 
         {
-            return _orderRepository.GetWithOrderProductsAsync().Result;
+            IEnumerable<Order> orderList = _orderRepository.GetWithOrderProductsAsync().Result;
+
+            if(orderList == null)
+                throw new Exception(ErrorMsg.ERROR003);
+
+            return orderList;
         }
         catch (Exception) 
         {
@@ -119,7 +134,12 @@ public class OrderBUS : IOrderBUS
     {
         try 
         {
-            return _orderRepository.GetWithOrderProductsByIdAsync(id).Result;
+            Order order = _orderRepository.GetWithOrderProductsByIdAsync(id).Result;
+
+            if (order is null)
+                throw new Exception(ErrorMsg.ERROR003);
+
+            return order;
         }
         catch (Exception) 
         {
@@ -127,23 +147,25 @@ public class OrderBUS : IOrderBUS
         }
     }
 
-    public void Update(long id, UpdateOrderDTO dto) 
+    public Order Update(long id, UpdateOrderDTO dto) 
     {
         try 
         {
             Order order = GetById(id);
+            Customer customer = _customerBUS.GetById(dto.CustomerId);
 
-            if (order is null)
-                throw new Exception("Pedido não encontrado"); // TODO: adicionar retorno no arquivo de msg de erro
+            if (customer == null)
+                throw new Exception(ErrorMsg.ERROR007);
+
+            _orderRepository.BeginTransaction();
+
+            order.CustomerId = customer.Id;
+            order.UpdateDate = DateTime.UtcNow;
 
             foreach (var productDto in dto.ProductList) 
             {
-                var productAux = (Product)_productBUS.GetById(productDto.ProductId).Data;
-
-                if (productAux == null) 
-                    throw new Exception($"Produto {productDto.ProductId} não encontrado.");
-
-                var existingProduct = order.OrderProductList.FirstOrDefault(p => p.ProductId == productDto.ProductId);
+                Product productAux = _productBUS.GetById(productDto.ProductId);
+                OrderProduct existingProduct = order.OrderProductList.FirstOrDefault(p => p.ProductId == productDto.ProductId);
 
                 if (existingProduct == null) 
                 {
@@ -157,25 +179,36 @@ public class OrderBUS : IOrderBUS
                         UpdateDate = DateTime.UtcNow
                     };
 
+                    order.Total += newProduct.TotalValue;
                     order.OrderProductList.Add(newProduct);
                 }
                 else if (existingProduct != null) 
                 {
+                    order.Total -= existingProduct.TotalValue;
+
+                    _productBUS.CalculationQuantity(existingProduct.Id, productDto.Quantity - existingProduct.Quantity );
+
                     existingProduct.Quantity = productDto.Quantity;
                     existingProduct.TotalValue = productAux.Price * productDto.Quantity;
                     existingProduct.UpdateDate = DateTime.UtcNow;
 
                     if (productDto.IsDeleted)
                         existingProduct.DeletionDate = DateTime.UtcNow;
+
+                    order.Total += existingProduct.TotalValue;
                 }
             }
 
             _orderRepository.Update(order);
+
+            _orderRepository.Commit();
             _orderRepository.SaveChange();
+
+            return order;
         }
         catch (Exception) 
         {
-
+            _orderRepository.Rollback();
             throw;
         }
     }

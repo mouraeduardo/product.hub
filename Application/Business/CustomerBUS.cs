@@ -1,4 +1,5 @@
-﻿using Domain.Business;
+﻿using Application.Messages;
+using Domain.Business;
 using Domain.Models;
 using Domain.Models.DTOs;
 using Domain.Repositories;
@@ -14,58 +15,103 @@ public class CustomerBUS : ICustomerBUS
         _customerRepository = customerRepository;
     }
 
-    public void Create(CreateCustomerDTO dto) 
+    public Customer Create(CreateCustomerDTO dto) 
     {
-        Customer customer = new() 
+        try 
         {
-            Name = dto.Name,
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow,
-            DeletionDate = null,
-        };
+            Customer customer = new() 
+            {
+                Name = dto.Name,
+                CreateDate = DateTime.UtcNow,
+                UpdateDate = DateTime.UtcNow,
+                DeletionDate = null,
+            };
 
-        _customerRepository.Create(customer);
-        _customerRepository.SaveChange();
+            _customerRepository.Create(customer);
+            _customerRepository.SaveChange();
+
+            return customer;
+        }
+        catch (Exception) 
+        {
+            throw;
+        }
     }
 
-    public void Delete(long id) 
+    public bool Delete(long id) 
     {
-        Customer customer = _customerRepository.GetByIdAsync(id).Result;
+        try 
+        {
+            Customer customer = _customerRepository.GetByIdAsync(id).Result;
 
-        if (customer is null)
-            throw new Exception("Customer não encontrado");
+            if (customer is null)
+                throw new Exception(ErrorMsg.ERROR007);
 
-        _customerRepository.Delete(customer);
-        _customerRepository.SaveChange();
+            _customerRepository.Delete(customer);
+            _customerRepository.SaveChange();
+
+             return true;
+        }
+        catch (Exception) 
+        {
+            throw;
+        }
     }
 
     public IEnumerable<Customer> GetAll() 
     {
-        return _customerRepository.GetAllAsync().Result;
+        try 
+        {
+            IEnumerable<Customer> customerList = _customerRepository.GetAllAsync().Result;
+
+            if (customerList == null)
+                throw new Exception(ErrorMsg.ERROR007);
+
+            return customerList;
+        }
+        catch (Exception) {
+
+            throw;
+        }
     }
 
     public Customer GetById(long id) 
     {
-        Customer customer = _customerRepository.GetByIdAsync(id).Result;
+        try 
+        {
+            Customer customer = _customerRepository.GetByIdAsync(id).Result;
 
-        if (customer is null)
-            throw new Exception("Customer não encontrado");
+            if (customer is null)
+                throw new Exception(ErrorMsg.ERROR007);
 
-        return customer;
+            return customer;
+        }
+        catch (Exception) {
+
+            throw;
+        }
     }
 
-    public void Update(long id, CreateCustomerDTO dto) 
+    public Customer Update(long id, CreateCustomerDTO dto) 
     {
-        Customer customer = GetById(id);
+        try 
+        {
+            Customer customer = GetById(id);
 
-        if (customer is null)
-            throw new Exception("Customer não encontrado");
+            if (customer is null)
+                throw new Exception(ErrorMsg.ERROR007);
 
-        customer.Name = dto.Name;
-        customer.UpdateDate = DateTime.UtcNow;
+            customer.Name = dto.Name;
+            customer.UpdateDate = DateTime.UtcNow;
 
-        _customerRepository.Update(customer);
-        _customerRepository.SaveChange();
+            _customerRepository.Update(customer);
+            _customerRepository.SaveChange();
 
+            return customer;
+        }
+        catch (Exception) 
+        {
+            throw;
+        }
     }
 }

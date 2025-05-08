@@ -1,14 +1,14 @@
-﻿using Domain.Communication;
-using Domain.Models;
+﻿using Domain.Models;
 using Domain.Models.DTOs;
 
 namespace Domain.Business;
 
 public interface IProductBUS
 {
-    public ApiResponse GetAll();
-    public ApiResponse GetById(long id);
-    public ApiResponse Create(CreateProductDTO dto);
-    public ApiResponse Update(long id, CreateProductDTO dto);
-    public ApiResponse Delete(long id);
+    public IEnumerable<Product> GetAll();
+    public Product GetById(long id);
+    public Product Create(CreateProductDTO dto);
+    public Product Update(long id, UpdateProductDTO dto);
+    public bool Delete(long id);
+    void CalculationQuantity(long id, int newQuantity);
 }

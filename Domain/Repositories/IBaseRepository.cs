@@ -9,4 +9,8 @@ public interface IBaseRepository<T> where T : class
     public void Update(T entity);
     public void Delete(T entity);
     public void SaveChange();
+
+    public void BeginTransaction();
+    public void Commit();
+    public void Rollback();
 }

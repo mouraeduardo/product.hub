@@ -1,7 +1,6 @@
 ﻿using Application.Messages;
 using Application.Utils;
 using Domain.Business;
-using Domain.Communication;
 using Domain.Models;
 using Domain.Models.DTOs;
 using Domain.Repositories;
@@ -18,12 +17,12 @@ public class UserBUS : IUserBUS
         _securityFunctions = securityFunctions;
     }
 
-    public void Create(CreateUserDTO dto) 
+    public CreateUserDTO Create(CreateUserDTO dto) 
     {
         try
         {
             if (dto.Password != dto.ConfirmedPassword)
-                throw new Exception("Senhas não conferem");
+                throw new Exception(ErrorMsg.ERROR009);
 
             User user = new()
             {
@@ -40,6 +39,8 @@ public class UserBUS : IUserBUS
 
             _userRepository.Create(user);
             _userRepository.SaveChange();
+
+            return dto;
         }
         catch (Exception) {
 
@@ -47,7 +48,7 @@ public class UserBUS : IUserBUS
         }
     }
 
-    public ApiResponse Login(LoginUserDTO dto) 
+    public string Login(LoginUserDTO dto) 
     {
         try
         {
@@ -58,12 +59,12 @@ public class UserBUS : IUserBUS
 
             string token = _securityFunctions.GenerateJwtToken(user);
 
-            return new ApiResponse(true, "Login realizado com sucesso", token);
+            return token;
 
         }
-        catch (Exception ex) 
+        catch (Exception) 
         {
-            return new ApiResponse(false, ex.Message);
+            throw;
         }
     }
 }

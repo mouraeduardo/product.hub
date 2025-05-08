@@ -95,5 +95,23 @@ namespace Application.Messages {
                 return ResourceManager.GetString("INF004", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Login realizado com sucesso.
+        /// </summary>
+        public static string INF005 {
+            get {
+                return ResourceManager.GetString("INF005", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Lista Vazia.
+        /// </summary>
+        public static string INF006 {
+            get {
+                return ResourceManager.GetString("INF006", resourceCulture);
+            }
+        }
     }
 }

@@ -7,8 +7,8 @@ public interface IOrderBUS
 {
     public IEnumerable<Order> GetAll();
     public Order GetById(long id);
-    public void Create(CreateOrderDTO dto);
-    public void Update(long id, UpdateOrderDTO dto);
-    public void Delete(long id);
+    public Order Create(CreateOrderDTO dto);
+    public Order Update(long id, UpdateOrderDTO dto);
+    public bool Delete(long id);
 }
  

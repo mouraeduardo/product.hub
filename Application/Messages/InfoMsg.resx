@@ -129,4 +129,10 @@
   <data name="INF004" xml:space="preserve">
     <value>Busca realizada com sucesso</value>
   </data>
+  <data name="INF005" xml:space="preserve">
+    <value>Login realizado com sucesso</value>
+  </data>
+  <data name="INF006" xml:space="preserve">
+    <value>Lista Vazia</value>
+  </data>
 </root>

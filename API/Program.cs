@@ -1,6 +1,7 @@
 using Application.Business;
 using Application.Utils;
 using Domain.Business;
+using Domain.Communication;
 using Domain.Models.ConfigurationModels;
 using Domain.Repositories;
 using Infrastructure.Context;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,10 +44,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
               ValidAudience = jwtSettings["Audience"],
               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]))
           };
-      });
+
+        options.Events = new JwtBearerEvents {
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+
+                var result = JsonSerializer.Serialize(new ApiResponse(false, "Você precisa estar autenticado para acessar este recurso."));
+
+                return context.Response.WriteAsync(result);
+            }
+        };
+    });
 
 builder.Services.AddSwaggerGen(c => {
-    //c.SwaggerDoc("v1", new OpenApiInfo { Title = "Product Hub", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Product Hub", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme() {
         Name = "Authorization",
@@ -53,7 +69,7 @@ builder.Services.AddSwaggerGen(c => {
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme.\r\n\r\n Enter 'Bearer'[space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+        Description = "JWT Authorization \n Adicone o tem conforme o exemplo abaixo \n Exemplo: \"Bearer 12345abcdef\""
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -70,7 +86,6 @@ builder.Services.AddSwaggerGen(c => {
         }
     });
 });
-
 
 // Add services to the container.
 

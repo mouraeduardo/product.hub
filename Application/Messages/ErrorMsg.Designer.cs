@@ -106,11 +106,47 @@ namespace Application.Messages {
         }
         
         /// <summary>
-        ///   Consulta uma cadeia de caracteres localizada semelhante a teste.
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Produto {0} não encontrado.
         /// </summary>
         public static string ERROR006 {
             get {
                 return ResourceManager.GetString("ERROR006", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Cliente não encontrado.
+        /// </summary>
+        public static string ERROR007 {
+            get {
+                return ResourceManager.GetString("ERROR007", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Não há {0} suficiente, para a quantidade desejada, no estoque.
+        /// </summary>
+        public static string ERROR008 {
+            get {
+                return ResourceManager.GetString("ERROR008", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Senhas não conferem.
+        /// </summary>
+        public static string ERROR009 {
+            get {
+                return ResourceManager.GetString("ERROR009", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Não foi possivel realizar o delete do produto selecionado.
+        /// </summary>
+        public static string ERROR010 {
+            get {
+                return ResourceManager.GetString("ERROR010", resourceCulture);
             }
         }
     }

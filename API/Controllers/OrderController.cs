@@ -1,12 +1,12 @@
-﻿using Application.Business;
+﻿using Application.Messages;
 using Domain.Business;
+using Domain.Communication;
 using Domain.Models;
 using Domain.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Controllers
-{
+namespace API.Controllers {
     [Authorize]
     [ApiController]
     [Route("[controller]")]
@@ -22,15 +22,31 @@ namespace API.Controllers
         [HttpGet("GetAll")]
         public IActionResult GetAll() 
         {
-            IEnumerable<Order> orders = _orderBUS.GetAll();
-            return Ok(orders);
+            try 
+            {
+                IEnumerable<Order> orderList = _orderBUS.GetAll();
+
+                if (orderList.Any())
+                    Ok(new ApiResponse(true, InfoMsg.INF006, orderList));
+
+                return Ok(new ApiResponse(true, InfoMsg.INF004, orderList));
+            }
+            catch (Exception ex) {
+                return BadRequest(new ApiResponse(false, ex.Message));
+            }
         }
 
         [HttpGet("GetById")]
         public IActionResult GetById(long id) 
         {
-            Order order = _orderBUS.GetById(id);
-            return Ok();
+            try
+            {
+                Order order = _orderBUS.GetById(id);
+                return Ok(new ApiResponse(true, InfoMsg.INF004, order));
+            }
+            catch (Exception ex) {
+                return BadRequest(new ApiResponse(false, ex.Message));
+            }
         }
 
         [HttpPost("Create")]
@@ -40,30 +56,43 @@ namespace API.Controllers
             {
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
-                _orderBUS.Create(dto);
-                return Ok();
-            }
-            catch (Exception) {
+                Order order = _orderBUS.Create(dto);
 
-                throw;
+                return Ok(new ApiResponse(true, InfoMsg.INF001, order));
+            }
+            catch (Exception ex) {
+                return BadRequest(new ApiResponse(false, ex.Message));
             }
         }
 
         [HttpPut("Update")]
         public IActionResult Update(long id, [FromBody] UpdateOrderDTO dto) 
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            _orderBUS.Update(id, dto);
-            return Ok();
+                Order order = _orderBUS.Update(id, dto);
+                return Ok(new ApiResponse(true, InfoMsg.INF002, order));
+
+            }
+            catch (Exception ex) {
+                return BadRequest(new ApiResponse(false, ex.Message));
+            }
         }
 
         [HttpDelete("Delete")]
         public IActionResult Delete(long id) 
         {
-            _orderBUS.Delete(id);
+            try 
+            {
+                bool sucess = _orderBUS.Delete(id);
 
-            return Ok();
+                return Ok(new ApiResponse(sucess, InfoMsg.INF003));
+            }
+            catch (Exception ex) {
+                return BadRequest(new ApiResponse(false, ex.Message));
+            }
         }
     }
 }

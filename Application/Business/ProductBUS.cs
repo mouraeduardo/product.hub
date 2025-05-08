@@ -1,6 +1,5 @@
 ﻿using Application.Messages;
 using Domain.Business;
-using Domain.Communication;
 using Domain.Models;
 using Domain.Models.DTOs;
 using Domain.Repositories;
@@ -16,13 +15,16 @@ public class ProductBUS : IProductBUS
         _productRepositoy = productRepository;
     }
 
-    public ApiResponse GetAll() 
+    public IEnumerable<Product> GetAll() 
     { 
         try
         {
             IEnumerable<Product> productList = _productRepositoy.GetAllAsync().Result;
+            
+            if (productList == null)
+                throw new Exception(ErrorMsg.ERROR004);
 
-            return new ApiResponse(true, InfoMsg.INF004, productList);
+            return productList;
         }
         catch (Exception)
         {
@@ -30,14 +32,16 @@ public class ProductBUS : IProductBUS
         }
     }
 
-    public ApiResponse GetById(long id)
+    public Product GetById(long id)
     {
         try
         {
             Product product = _productRepositoy.GetByIdAsync(id).Result;
 
-            return new ApiResponse(true, InfoMsg.INF004, product);
+            if (product == null)
+                throw new Exception(ErrorMsg.ERROR004);
 
+            return product;
         }
         catch (Exception) 
         {
@@ -45,7 +49,7 @@ public class ProductBUS : IProductBUS
         }
     }
 
-    public ApiResponse Create(CreateProductDTO dto) 
+    public Product Create(CreateProductDTO dto) 
     {
         try 
         {
@@ -64,7 +68,7 @@ public class ProductBUS : IProductBUS
             _productRepositoy.Create(product);
             _productRepositoy.SaveChange();
 
-            return new ApiResponse(true, InfoMsg.INF001);
+            return product;
         }
         catch (Exception) 
         {
@@ -72,14 +76,11 @@ public class ProductBUS : IProductBUS
         }
     }
 
-    public ApiResponse Update(long id, CreateProductDTO dto)
+    public Product Update(long id, UpdateProductDTO dto)
     {
         try 
         {
-            Product product = _productRepositoy.GetByIdAsync(id).Result;
-
-            if (product is null) 
-                throw new Exception(ErrorMsg.ERROR004); 
+            Product product = GetById(id);
 
             product.Name = dto.Name;
             product.Description = dto.Description;
@@ -91,7 +92,7 @@ public class ProductBUS : IProductBUS
             _productRepositoy.Update(product);
             _productRepositoy.SaveChange();
 
-            return new ApiResponse(true, InfoMsg.INF002);
+            return product;
         }
         catch (Exception) 
         {
@@ -99,20 +100,36 @@ public class ProductBUS : IProductBUS
         }
     }
 
-    public ApiResponse Delete(long id)
+    public bool Delete(long id)
     {
         try 
         {
-            Product product = _productRepositoy.GetByIdAsync(id).Result;
-
-            if (product is null)
-                throw new Exception(ErrorMsg.ERROR004);
+            Product product = GetById(id);
 
             product.DeletionDate = DateTime.UtcNow;
             _productRepositoy.Update(product);
             _productRepositoy.SaveChange();
 
-            return new ApiResponse(true, InfoMsg.INF003);
+            return true;
+        }
+        catch (Exception) 
+        {
+            throw;
+        }
+    }
+
+    public void CalculationQuantity(long id, int newQuantity)
+    {
+        try 
+        {
+            Product product = GetById(id);
+
+            product.StockQuantity -= newQuantity;
+
+            if (product.StockQuantity < 0)
+                throw new Exception(string.Format(ErrorMsg.ERROR007, product.Name));
+
+            _productRepositoy.Update(product);
         }
         catch (Exception) 
         {

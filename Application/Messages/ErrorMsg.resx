@@ -133,6 +133,18 @@
     <value>Houve um erro inesperado</value>
   </data>
   <data name="ERROR006" xml:space="preserve">
-    <value>teste</value>
+    <value>Produto {0} não encontrado</value>
+  </data>
+  <data name="ERROR007" xml:space="preserve">
+    <value>Cliente não encontrado</value>
+  </data>
+  <data name="ERROR008" xml:space="preserve">
+    <value>Não há {0} suficiente, para a quantidade desejada, no estoque</value>
+  </data>
+  <data name="ERROR009" xml:space="preserve">
+    <value>Senhas não conferem</value>
+  </data>
+  <data name="ERROR010" xml:space="preserve">
+    <value>Não foi possivel realizar o delete do produto selecionado</value>
   </data>
 </root>
